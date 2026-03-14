@@ -1,37 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <cstdlib>
-#include <cstdint>
-#include "vm_engine.hpp"
-#include "vm_compiler.hpp"
 
-int main() {
-    std::cout << "========================================" << std::endl;
-    std::cout << "    商业级 SO 虚拟化保护工具 v2.0" << std::endl;
-    std::cout << "========================================" << std::endl;
-
-    std::string path;
-    std::cout << "请输入需要加密的so动态库文件路径: ";
-    if (!(std::cin >> path)) return 1;
-
-    std::cout << "\n选择加密保护配置 (默认全选):" << std::endl;
-    std::cout << "  [X] 1. 代码虚拟化 (VMP - Instruction Virtualization)" << std::endl;
-    std::cout << "  [X] 2. MBA 变换加密" << std::endl;
-    std::cout << "  [X] 3. 动态加解密" << std::endl;
-    std::cout << "  [X] 4. 符号表隐藏" << std::endl;
-    std::cout << "\n按下回车开始构建虚拟化保护层..." << std::endl;
-    std::cin.ignore();
-    std::cin.get();
-
-    std::cout << "正在将关键函数 [add] 编译为 VMP 字节码..." << std::endl;
-    auto bytecode = VM::Compiler::compile_add_function();
-
-    std::cout << "正在生成受保护的 VMP 载体 SO (Hardened)..." << std::endl;
-
-    std::ofstream carrier("so_protector/src/vmp_carrier.cpp");
-    carrier << R"(
 #include <iostream>
 #include <vector>
 #include <cstdint>
@@ -83,11 +50,7 @@ public:
 }
 
 static std::vector<VM::Instruction> vmp_code = {
-)";
-    for (const auto& inst : bytecode) {
-        carrier << "{(VM::OpCode)" << (int)inst.op << ", " << inst.operand << "},";
-    }
-    carrier << R"(
+{(VM::OpCode)5, 0},{(VM::OpCode)5, 1},{(VM::OpCode)2, 0},{(VM::OpCode)255, 0},
 };
 
 extern "C" {
@@ -97,13 +60,4 @@ extern "C" {
     }
     void hello() { std::cout << "Hello from VMP Protected SO!" << std::endl; }
     const char* get_secret() { return "VMP Protected Secret"; }
-}
-)";
-    carrier.close();
-
-    std::cout << "正在编译集成 VMP 引擎和抗反汇编逻辑的动态库..." << std::endl;
-    system("g++ -fPIC -shared so_protector/src/vmp_carrier.cpp -o libtest_vmp.so");
-
-    std::cout << "\n[成功] 虚拟化与加固保护完成! 已生成: libtest_vmp.so" << std::endl;
-    return 0;
 }
