@@ -1,25 +1,19 @@
-# 高级 SO 全方位保护工具 (JNI 增强版)
+# Android Root SO Protector (Standalone Edition)
 
-该工具为 Linux 平台下的 `.so` 动态库提供商业级安全防护，特别针对 JNI 接口进行了优化。
+该工具专为 Android 平台下的 `.so` 动态库提供 root 环境下的安全加固。
 
-## 核心防护技术
-1. **指令级虚拟化 (VMP)**: 将原始指令编译为私有字节码，在自定义的加密虚拟机中执行，彻底阻断反汇编。
-2. **控制流扁平化 (CFF)**: 破坏程序的逻辑结构，将线性流程转变为复杂的动态分发状态机，对抗静态分析。
-3. **MBA (混合布尔-算术) 混淆**: 使用复杂的数学恒等式替换基础运算，隐藏算法逻辑。
-4. **JNI 自动化保护**: 自动识别 `Java_...` 导出符号，并为其生成专用的加固包装层。
-5. **抗调试与防内存 Dump**: 检测调试状态，防止通过内存快照提取解密后的代码。
+## 核心功能
+1. **指令级虚拟化 (VMP)**: 将 JNI 函数逻辑转换为字节码。
+2. **全方位混淆**: 集成了 CFF (控制流扁平化) 和 MBA (混合布尔-算术) 变换。
+3. **Android 特化防护**:
+   - 检测 Frida、Xposed 等 Hook 框架。
+   - 检测调试器状态。
+   - 使用 memfd_create 实现无文件加载，对抗内存 Dump。
 
-## 使用说明
-1. **编译保护工具**:
-   ```bash
-   g++ -O2 so_protector/src/protector.cpp -o so_protector/protector
-   ```
-2. **运行保护程序**:
-   ```bash
-   ./so_protector/protector
-   ```
-3. **输入路径**: 输入需要保护的 `.so` 文件路径（如 `so_protector/jni_test/libnative-lib.so`）。
-4. **输出**: 生成 `libnative-lib_protected.so`，该文件可直接替换原库使用。
+## 使用说明 (Android Root)
+1. **交叉编译工具**: 使用 NDK 将 protector.cpp 编译为 Android 可执行文件。
+2. **在 Android 上运行**: 将 protector 和目标 SO 推送到 /data/local/tmp/，使用 root 权限执行 protector。
+3. **部署保护后的 SO**: 生成的 .protected 文件需要配合加载器使用。
 
-## 测试验证
-工具内置了 JNI 模拟环境，可自动验证加固后的动态库在模拟 JVM 调用下的运行正确性。
+## 技术原理
+工具会在 SO 文件头部注入一个 VmpHeader，并对原始数据进行 MBA 变换加密。加载器在运行时通过 memfd_create 在匿名内存中解密并加载库文件，确保磁盘上不存在明文 SO。
