@@ -1,0 +1,12 @@
+00000000000011a1 0000000000000084 T Java_com_example_myapp_MainActivity_addNumbers
+0000000000001159 0000000000000048 T Java_com_example_myapp_MainActivity_stringFromJNI
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+                 U _ZNSolsEPFRSoS_E@GLIBCXX_3.4
+                 U _ZNSolsEi@GLIBCXX_3.4
+                 U _ZSt21ios_base_library_initv@GLIBCXX_3.4.32
+                 U _ZSt4cout@GLIBCXX_3.4
+                 U _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_@GLIBCXX_3.4
+                 U _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc@GLIBCXX_3.4
+                 w __cxa_finalize
+                 w __gmon_start__
