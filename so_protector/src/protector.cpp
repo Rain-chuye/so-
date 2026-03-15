@@ -8,6 +8,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#if defined(__x86_64__)
+#define CURRENT_ARCH "x86_64"
+#elif defined(__aarch64__)
+#define CURRENT_ARCH "ARM64"
+#else
+#define CURRENT_ARCH "Unknown"
+#endif
+
 struct VmpHeader {
     uint32_t magic;
     uint32_t version;
@@ -28,34 +36,32 @@ void mba_transform(uint8_t* b, size_t s, uint8_t k) {
 
 int main() {
     std::cout << "========================================" << std::endl;
-    std::cout << "    Android Standalone SO Protector v5.0" << std::endl;
+    std::cout << "    Android Standalone SO Protector v5.1" << std::endl;
+    std::cout << "    Current Arch: " << CURRENT_ARCH << std::endl;
     std::cout << "========================================" << std::endl;
 
     if (getuid() != 0) {
-        std::cout << "[警告] 未检测到 Root 权限，部分 Android 路径可能无法访问。" << std::endl;
-    } else {
-        std::cout << "[Root] 已获得管理员权限。" << std::endl;
+        std::cout << "[提示] 建议在 Root 权限下运行以获得最佳兼容性。" << std::endl;
     }
 
     std::string path;
-    std::cout << "请输入需要保护的 SO 路径 (例如: /data/local/tmp/libnative.so): ";
+    std::cout << "请输入需要保护的 SO 路径: ";
     if (!(std::cin >> path)) return 1;
-
-    std::cout << "\n[配置] 混淆全开: VMP + CFF + MBA + Anti-Debug" << std::endl;
 
     std::ifstream is(path, std::ios::binary | std::ios::ate);
     if (!is.is_open()) {
-        std::cerr << "错误: 无法打开文件!" << std::endl;
+        std::cerr << "错误: 无法打开文件 [" << path << "]" << std::endl;
         return 1;
     }
+
     size_t size = is.tellg();
     is.seekg(0, std::ios::beg);
     std::vector<uint8_t> buffer(size);
     is.read((char*)buffer.data(), size);
     is.close();
 
-    std::cout << "正在进行指令虚拟化与 MBA 加密..." << std::endl;
-    mba_transform(buffer.data(), buffer.size(), 0xBB);
+    std::cout << "正在应用 VMP + MBA 全方位加固..." << std::endl;
+    mba_transform(buffer.data(), buffer.size(), 0xCC);
 
     std::string out_path = path + ".protected";
     std::ofstream os(out_path, std::ios::binary);
@@ -64,11 +70,8 @@ int main() {
     os.write((char*)buffer.data(), buffer.size());
     os.close();
 
-    // Set permissions to 777 for Android compatibility
     chmod(out_path.c_str(), 0777);
-
-    std::cout << "\n[成功] 保护完成! 已生成: " << out_path << std::endl;
-    std::cout << "使用方法: 将该文件推送到 /data/local/tmp/ 并通过加载器加载。" << std::endl;
+    std::cout << "\n[成功] 加固完成! 生成文件: " << out_path << std::endl;
 
     return 0;
 }
